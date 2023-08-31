@@ -1,16 +1,52 @@
-package dev._3000IQPlay.simpleauth.protect.antivm;
+package org.mapleir.dot4j.systems.auth;
 
+import org.mapleir.dot4j.systems.auth.MacUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 
-public class VMDetector {
-	public static boolean booleanCheck = false;
+public class AntiVM {
+	public static void checkForVM() {
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.contains("nux") || osName.contains("nix") || osName.contains("mac")) {
+            String cpuInfo = executeCommand("cat /proc/cpuinfo");
+            if (cpuInfo.contains("hypervisor")) {
+                // System.out.println("Running on a Virtual Machine");
+            } else {
+                // System.out.println("Not running on a Virtual Machine");
+            }
+        } else if (osName.contains("win")) {
+            String systemInfo = executeCommand("systeminfo");
+            if (systemInfo.contains("Virtual Machine")) {
+                // System.out.println("Running on a Virtual Machine");
+            } else {
+                // System.out.println("Not running on a Virtual Machine");
+            }
+        } else {
+            // System.out.println("Cannot determine the operating system");
+        }
+    }
+
+    private static String executeCommand(String command) {
+        StringBuilder output = new StringBuilder();
+        Process p;
+        try {
+            p = Runtime.getRuntime().exec(command);
+            p.waitFor();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return output.toString();
+    }
 	
-	public static boolean isRunningOnVM() {
+    public static boolean isRunningOnVM() {
         boolean isVM = false;
-		booleanCheck = true;
 
         String vendor = System.getProperty("java.vendor");
         String name = System.getProperty("java.vm.name");
@@ -59,7 +95,7 @@ public class VMDetector {
         return isVM;
     }
 	
-	public static boolean isVM() {
+	public static boolean isMacVM() {
         try {
             Enumeration<NetworkInterface> net = null;
             net = NetworkInterface.getNetworkInterfaces();
